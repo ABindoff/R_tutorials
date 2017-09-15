@@ -1,7 +1,6 @@
 ---
-title: "2. Working with data"
+title: "_2. Working with data"
 author: "Bindoff, A."
-date: "15 September 2017"
 output: github_document
 ---
 
@@ -48,9 +47,15 @@ We will use the function `read.csv()` to load the file "midichlorians.csv" and s
 
 ```{r}
 df <- read.csv("midichlorians.csv")
-df$t <- factor(df$t, labels = c("5mo", "20mo")) # make t a factor with sensible labels
+df$age <- factor(df$age, labels = c("5mo", "20mo")) # make t a factor with sensible labels
 
 ```
+
+The data are from an experiment that took transgenic and wild-type mice and subjected them to twice-weekly Jedi training. Mice were euthanased at 5 months and 20 months of age, and their midichlorians counted. The counts were standardized to z-scores by deducting the mean from each score and dividing by the standard deviation for the sample.  
+
+![jedi mouse](jedi_mouse.jpg)
+  
+  *(This one's midichlorians were over 20000!)*
 
 In order to view the entire data frame we can use the function `View(df)` in the console. If we just want to see a few rows we can use `head(df)`
 
@@ -64,7 +69,7 @@ head(df)
 `xtabs()` takes a formula that includes the variables of interest, then counts the number of observations in each cell. `table()` is very similar, it will count the number of observations at each level of a factor. To see what other arguments xtabs will take, type `? xtabs` in the console, output will appear in the bottom right pane under the Help tab.  
 
 ```{r}
-xtabs(~strain + t, df)
+xtabs(~strain + age, df)
 table(df$strain)
 ```
 
@@ -110,7 +115,8 @@ p + geom_boxplot(position = position_dodge(width = 1), aes(fill = factor(id)))
 
 ```
 
-Alternatively, we could change the data frame (and while we're at it, re-order 'wt' as the baseline)  
+Alternatively, we could change the data frame (and while we're at it, re-order 'wt' as the baseline). This is certainly good practice, because it means we won't keep repeating the mistake when making new plots or analysing the data.  
+
 
 ```{r}
 df$id <- factor(df$id)
@@ -127,7 +133,7 @@ ggplot(data = df, aes(x = strain, y = m, group = id, fill = id)) +
 Having checked our data for extreme outliers and potential issues, we might want to zoom out a bit
 
 ```{r}
-ggplot(df, aes(x = strain, y = m, fill = t)) +
+ggplot(df, aes(x = strain, y = m, fill = age)) +
   geom_violin(draw_quantiles = c(0.5))
 
 ```
@@ -136,7 +142,7 @@ This is a good exploratory plot because it shows the *density* of m conditioned 
 
 
 ```{r}
-df0 <- group_by(df, strain, t) %>%
+df0 <- group_by(df, strain, age) %>%
   summarise(mean.m = mean(m), se.m = sd(m)/sqrt(sum(!is.na(m))))
 df0
 ```
@@ -146,7 +152,7 @@ The first function, `group_by()` takes a data frame, then groups rows by `strain
 `mean()` calculates a mean, and `sd()` calculates the standard deviation. We've divided the standard deviation by the square root of the sum of the residuals to calculate the **standard error of the mean** (and removed any missing values just in case). Because R was developed by statisticians, a base function to calculate the standard error of the mean was considered unnecessary, but fortunately there are several packages that will do this for you. I recommend installing the `plotrix` library and using the `std.error()` function.  
 
 ```{r}
-p <- ggplot(df0, aes(x = strain, y = mean.m, colour = t)) +
+p <- ggplot(df0, aes(x = strain, y = mean.m, colour = age)) +
   geom_point(size = 2, position = position_dodge(width = 0.5))
 p
 
@@ -158,7 +164,9 @@ p
 This is starting to look good, the whiskers show 95% CIs (mean $\pm 1.96$SEM), they don't overlap, and all experimental conditions are shown. A little more work makes it publication ready.
 
 ```{r}
-p + scale_colour_manual(values = c("dodgerblue4", "firebrick"), name = element_blank(), labels = c("5 months old", "20 months old")) +
+p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
+                        name = element_blank(),
+                        labels = c("5 months old", "20 months old")) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
