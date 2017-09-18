@@ -107,3 +107,5 @@ data.frame(a, b)
 # the code below will not execute due to an error above it in this chunk
 a + b
 ```
+
+*Continue to tutorial 2,* [Working with data](https://github.com/ABindoff/R_tutorials/blob/master/2_Data.md)
