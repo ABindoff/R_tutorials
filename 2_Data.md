@@ -197,7 +197,7 @@ df0
 
 The first function, `group_by()` takes a data frame, then groups rows by `strain` then by `t`. `%>%` is called the "pipe operator" and it carries data from the previous operation through to the next operation. `summarise()` applies a function or functions to data. So in this case, we've given it grouped data to summarise.
 
-`mean()` calculates a mean, and `sd()` calculates the standard deviation. We've divided the standard deviation by the square root of the sum of the residuals to calculate the **standard error of the mean** (and removed any missing values just in case). Because R was developed by statisticians, a base function to calculate the standard error of the mean was considered unnecessary, but fortunately there are several packages that will do this for you. I recommend installing the `plotrix` library and using the `std.error()` function.
+`mean()` calculates a mean, and `sd()` calculates the standard deviation. We've divided the standard deviation by the square root of *n* to find the **standard error of the mean** (not counting missing observations). Because R was developed by statisticians, a base function to calculate the standard error of the mean was considered unnecessary, but fortunately there are several packages that will do this for you. I recommend installing the `plotrix` library and using the `std.error()` function.
 
 ``` r
 p <- ggplot(df0, aes(x = strain, y = mean.m, colour = age)) +
