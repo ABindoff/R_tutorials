@@ -1,8 +1,8 @@
-\_2. Working with data
+*2. Working with data*
 ================
 Bindoff, A.
 
-2017-09-15
+2017-09-18
 
 This tutorial aims to teach some good data organisation practices, then how to load and summarise the data in R. But first, we need to be able to install a few helpful packages which make working with data in R easier and more efficient.
 

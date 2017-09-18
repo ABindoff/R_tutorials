@@ -1,8 +1,8 @@
-1.  Using R Studio
+*1. Using R Studio*
 ================
 Bindoff, A.
 
-2017-09-15
+2017-09-18
 
 R Studio is an Integrated Development Environment (IDE) for the R statistical programming language. It has a number of useful features such as syntax highlighting, package maintenance, integration with git and other version control systems, and can generate documents dynamically (like this one) where analysis, tables, and figures can be produced within the document itself.
 

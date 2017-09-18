@@ -1,5 +1,5 @@
 ---
-title: "_2. Working with data"
+title: "_2. Working with data_"
 author: "Bindoff, A."
 output: github_document
 ---

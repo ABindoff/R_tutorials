@@ -1,5 +1,5 @@
 ---
-title: "1. Using R Studio"
+title: "_1. Using R Studio_"
 author: "Bindoff, A."
 output: github_document
 ---
@@ -46,9 +46,13 @@ The above code assigns a "vector" of values to `k`, then prints `k` to the conso
 
 The following code chunk assigns a vector of objects to `first.names` then attempts to divide them by 2.  
 
-```{r}
+```{r, echo = F}
 first.names <- c("Donald", "Gary", "Sue", "Imelda", 4)
-first.names/2
+```
+
+```{r, eval = F}
+first.names <- c("Donald", "Gary", "Sue", "Imelda", 4)
+first.names/2 # remove the comment to run in R Studio
 ```
   
 You should have got an error (how do you divide "Donald" by 2?) - but what about the `4` at the end of the list?
@@ -62,7 +66,10 @@ R has silently co-erced all of the elements of `first.names` to character string
 When we work with data from experiments or studies, data types are often mixed. We store these mixed data types in a "data frame" or "list" (a data frame is a type of list).
 
 ```{r}
-k <- data.frame(num = c(1,2,3,4), letter = c("a", "b", "c", "d"), value = c(0.23, pi, 4.5, 999), condition = factor(c("A", "B", "A", "B")))
+k <- data.frame(num = c(1,2,3,4),
+                letter = c("a", "b", "c", "d"),
+                value = c(0.23, pi, 4.5, 999),
+                condition = factor(c("A", "B", "A", "B")))
 k
 
 levels(k$condition)
@@ -81,10 +88,11 @@ cbind(a,b)
 
 `cbind` is a function that binds two vectors as columns. A warning was issued because the number of elements of each vector differed. `cbind` still returned two bound columns, but notice how the second column was constructed. R uses a "recycling rule" except where it would obviously have a catastrophic outcome, such that the vector is "recycled" starting at the beginning until empty rows are filled. This might have a catastrophic outcome in a data frame, so we get an Error which causes the code/code-chunk to cease execution -  
 
-```{r}
+```{r, eval = F}
 data.frame(a, b)
 
-# the '#' character is reserved for comments, the code below will not execute due to an error above it in this chunk
+# the '#' character is reserved for comments,
+# the code below will not execute due to an error above it in this chunk
 a + b
 ```
 
