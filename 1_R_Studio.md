@@ -2,7 +2,7 @@
 ================
 Bindoff, A.
 
-2017-09-18
+2017-09-19
 
 R Studio is an Integrated Development Environment (IDE) for the R statistical programming language. It has a number of useful features such as syntax highlighting, package maintenance, integration with git and other version control systems, and can generate documents dynamically (like this one) where analysis, tables, and figures can be produced within the document itself.
 
@@ -109,3 +109,9 @@ a + b
 ```
 
 *Continue to tutorial 2,* [Working with data](https://github.com/ABindoff/R_tutorials/blob/master/2_Data.md)
+
+### Resources
+
+[R for psychologists](http://personality-project.org/r/#intro)
+
+[Cookbook for R](http://www.cookbook-r.com/)
