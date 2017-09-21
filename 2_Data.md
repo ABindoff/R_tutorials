@@ -215,7 +215,7 @@ p
 
 ![](2_Data_files/figure-markdown_github/unnamed-chunk-14-2.png)
 
-This is starting to look good, the whiskers show 95% CIs (mean ±1.96SEM), they don't overlap, and all experimental conditions are shown. A little more work makes it publication ready.
+This is starting to look good, the whiskers show 95% CIs (mean ±1.96SEM), and all experimental conditions are shown. A little more work makes it publication ready.
 
 ``` r
 p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
