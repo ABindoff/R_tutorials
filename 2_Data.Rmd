@@ -156,7 +156,7 @@ p <- ggplot(df0, aes(x = strain, y = mean.m, colour = age)) +
   geom_point(size = 2, position = position_dodge(width = 0.5))
 p
 
-p <- p + geom_errorbar(aes(min = mean.m - se.m, max = mean.m + se.m),
+p <- p + geom_errorbar(aes(min = mean.m - 1.96*se.m, max = mean.m + 1.96*se.m),
                   position = position_dodge(width = 0.5), width = 0.25)
 p
 ```
@@ -175,4 +175,10 @@ p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
 
 
 ```
+
+  
+  
+### Resources
+
+[R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)  
 

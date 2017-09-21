@@ -2,7 +2,7 @@
 ================
 Bindoff, A.
 
-2017-09-19
+2017-09-21
 
 This tutorial aims to teach some good data organisation practices, then how to load and summarise the data in R. But first, we need to be able to install a few helpful packages which make working with data in R easier and more efficient.
 
@@ -208,7 +208,7 @@ p
 ![](2_Data_files/figure-markdown_github/unnamed-chunk-14-1.png)
 
 ``` r
-p <- p + geom_errorbar(aes(min = mean.m - se.m, max = mean.m + se.m),
+p <- p + geom_errorbar(aes(min = mean.m - 1.96*se.m, max = mean.m + 1.96*se.m),
                   position = position_dodge(width = 0.5), width = 0.25)
 p
 ```
