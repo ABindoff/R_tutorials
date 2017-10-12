@@ -1,0 +1,174 @@
+---
+title: "_3. Estimation_"
+author: "Bindoff, A."
+output: github_document
+---
+
+`r Sys.Date()`
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = T, message = T)
+library(dplyr)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+```
+
+In the previous tutorial we looked at some ways to summarise data in tables and figures using the `dplyr` and `ggplot2` packages in R. If you are already working with data of your own you may have already plotted your data to get a sense of what is happening. But how do we know what is the real effect of a treatment or observed variable, and what is just chance occurrence? For it is certainly true that random noise will produce patterns, and conversely, that sytematic patterns can be lost in noise. This is why it is useful to [both plot and analyse data](https://www.autodeskresearch.com/publications/samestats). In this tutorial we will explore ways to analyse data from **laboratory experiments**.  
+
+For this tutorial we will assume that you have some background in experimental design (for nothing will save a very poorly designed experiment). We will not assume that things don't go wrong, that there won't be any measurement error, or that there are not factors outside of your control. A recurring theme throughout this tutorial will be minimisation of Type I and Type II errors. This is not merely the pursuit of scientific or statistical purity, but so that you avoid wasting years of your life trying to replicate something that was never there, or missing the next big discovery.  
+
+![type I & II errors](type_i_ii_errors.jpg)  
+  
+  
+### Models
+
+In some disciplines, data analysis and statistics is taught from a hypothesis testing perspective, where you learn which test to apply when in order to obtain a p-value. It is important to realise that this is not a test of your experiment, or even the data from your experiment - but rather a test of how well the data from your experiment fits *under the model you specify*. A good experiment analysed with a poorly fitted model is more likely to produce Type II errors, and an experiment analysed with a model that makes unreasonable assumptions about the generalisability of the experiment is more likely to produce Type I errors or models that only work for the sample (but generalise poorly to the population).  
+
+We will begin with a problematic example with features that will be familiar to many lab scientists. In this experiment, there are clearly systematic sources of variance that are outside of the experimenter's control. We will simulate results from a mouse embryo experiment assessing the effect of two levels of a drug (plus a control) on cell cultures. Experimental treatments were applied over two days, and the level of protein expressed recorded after treatment.  
+
+```{r}
+set.seed(123)
+day <- c(rep(1, 20), rep(2, 20), rep(3, 15))  # 20 observations on day 1, 20 observations on day 2, 15 observations on day 3
+treatment <- c(rep(0, 15),
+               rep(10, 5),
+               rep(0, 10),
+               rep(12, 10),
+               rep(0, 5),
+               rep(10, 5),
+               rep(12, 5))  # 20 controls, 20 at level 10mg, 15 at level 12mg
+day.effect <- c(rnorm(20, 0, 2), rnorm(20, 5, 2), rnorm(15, 2, 2))  # random effect of day
+protein <- 5 + 0.23*treatment + day.effect + rnorm(55, 0, .9)
+df <- data.frame(day = factor(day), treatment = factor(treatment), protein)
+```
+
+Inspection of boxplots and linear regression suggests no effect of 10mg treatment.
+
+```{r}
+ggplot(df, aes(x = treatment, y = protein)) +
+  geom_boxplot()
+summary(lm(protein ~ treatment, df))
+
+```
+ 
+Conditioning on `day` reveals a layer of the story, and suggests that the null result (previous) for 10mg is a Type I error.  
+
+
+```{r}
+ggplot(df, aes(x = treatment, y = protein, colour = day)) +
+  geom_boxplot()
+summary(lm(protein ~ treatment + day, df))
+
+```
+
+It is usual to see these large effects of day (or batch, or new bottle of vehicle, or animal...) confounding the effect of treatment, but there's not much we can infer from this experiment because we don't know what it *was about `day`* that made the difference. Hence, we call `day` a "random effect" to distinguish it from a "fixed effect". `Day` is not something we can manipulate or assign some fixed value by which an adjustment can be made to predict the effect of `day` *in future experiments* or *in the population*.  
+
+  One solution is to center the response variable by deducting the mean `protein` for each day from each observation on that day.
+
+
+```{r}
+df <- group_by(df, day) %>% mutate(protein_c = scale(protein, scale =F))
+ggplot(df, aes(x = treatment, y = protein_c, colour = day)) +
+  geom_boxplot()
+summary(m1 <- lm(protein_c ~ treatment, df))
+
+```
+  
+  This approach has the benefit of removing the mean effect of day. But what if (as in this case, but to a greater extreme) treatments aren't balanced over days? What if there is more than one random effect? What if the random effect has a different effect on the control group than treatment groups?  
+  
+### Mixed Models
+  
+  Fortunately, **linear mixed models** allow us to account for random effects by modelling them under the assumption that the random effects are drawn from a normal distribution, which can be estimated by finding the mean and variance. Compare the results from the mixed model below with the adjusted data above.  
+  
+  
+```{r}
+summary(m <- lmer(protein ~ treatment + (1|day), df))
+
+```
+
+Can we now confidently state that there is a treatment effect? (Hint: not without more information)  
+  
+  The issue here is that each observation has been treated as a replicate. In truth, we don't know if the observed effect will generalise to the population. As it turns out, this experiment took cells from just two embryos (labelled `a` and `b` below).  
+  
+
+```{r}
+df$embryo <- c(rep("a", 20), rep("b", 20), rep("a", 15))
+
+ggplot(df, aes(x = treatment, y = protein, colour = embryo)) +
+  geom_boxplot() +
+  facet_wrap(~ day)
+
+```
+
+In a mixed model we can estimate the random effect of `day` and `embryo` in the same model.  
+
+
+```{r}
+
+summary(m2 <- lmer(protein ~ treatment + (1|day) + (1|embryo), df))
+
+```
+
+Can we confidently state that there is an effect of treatment?  Yes, but with the caveat that everything we know about the effect of treatment from this experiment is based on observations on cells from just two embryos.  
+
+### Clustering
+
+Another way to think about random effects are as grouping or clustering variables. Above we obtained a very reasonable result by simply deducting daily mean `protein` from observations for the corresponding day. In effect, this is a crude but reasonable way to account for the effect of clustering on day. Similarly, if dealing with multiple observations from each subject, in order to satisfy the *assumption of independence* it is reasonable to reduce the observations per subject to a mean, or deduct pre-test scores from post-test scores in a repeated measures experiment. Doing this comes at the expense of information about how much the observations within each subject vary.  
+
+The assumption of independence can be relaxed by including random effects terms in the model to specify where (and how) the data are clustered. For example, in a repeated measures experiment, a random intercept can be fitted for each subject. This is the mean of all scores for each subject. A more complicated random effects structure might also fit a random slope for each subject, accounting for the average change in scores for each subject. [This paper](https://www.ncbi.nlm.nih.gov/pubmed/24403724) provides an excellent overview of random effects structures.  
+
+In the next example we simulate data from a simple within-subjects behavioural experiment where mice a trained to perform a task and then tested again after a treatment. Four observations are taken from each animal at each time point.
+
+```{r}
+set.seed(123)
+id <- rep(c(1:10), 8)
+time <- c(rep(0, 40), rep(1, 40))
+id_int_effect <- rep(rnorm(10, 0, 2), 8)
+id_slope_effect <- rep(rnorm(10, 0.25, 0.25), 8)
+accuracy <- time*id_slope_effect + id_int_effect + rnorm(80, 0, 0.5)
+df <- data.frame(id = factor(id), time = factor(time), accuracy)
+
+df0 <- group_by(df, id, time) %>% summarise(accuracy = mean(accuracy))
+
+ggplot(df0, aes(x = time, y = accuracy, group = id, colour = id)) +
+  geom_line() +
+  geom_point(aes(x = time, y = accuracy, colour = id), data = df)
+```
+
+The different coloured lines show the mean change between pre-treatment (t = 0) and post-treatment (t = 1) scores. It is clear that animals who have a low score at t = 0 tend to have a low score at t = 1. There is a trend towards higher scores at t = 1, but the effect is stronger for some than for others.
+
+For our first analysis we will ignore the random effect (and assumption of independence)
+
+```{r}
+summary(lm(accuracy ~ time, df))
+
+```
+
+We expect the $\beta$ coefficient of time to be 1, and the intercept to be 0. We know that even though there is a lot of noise (the `rnorm` arguments add random noise to the intercept and slope), there is a real effect, but this is not reflected in the p-value. Next we will account for the observed trend that animals with higher accuracy scores at t = 0 tend to have higher accuracy scores at t = 1.  
+
+```{r}
+summary(m1 <- lmer(accuracy ~ time + (1|id), df))
+```
+
+We have 10 animals, so while this analysis is valid, an estimated denominator degrees of freedom of 69 seems high. Recall that the p-value is calculated using the F statistic with degrees of freedom. If the df seems too high, this suggests the possibility of an inflated Type I error rate.  
+
+Next we estimate a random slope.
+
+
+```{r}
+summary(m2 <- lmer(accuracy ~ time + (time|id), df))
+```
+
+The p-value is now estimated using df = 9 - which seems far more appropriate given that only 10 animals were studied. The estimated variance for the random slope is non-zero (which we know is true anyway because we simulated these data), which suggests that this term should be included. A likelihood ratio test and AIC statistics show that both models are equivalent.
+
+```{r}
+anova(m1, m2)
+
+```
+
+### Resources
+
+[R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)  
+[Random effects structure for confirmatory hypothesis testing: Keep it maximal](https://www.ncbi.nlm.nih.gov/pubmed/24403724)  
+
+
