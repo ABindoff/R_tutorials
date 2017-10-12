@@ -2,7 +2,7 @@
 ================
 Bindoff, A.
 
-2017-09-21
+2017-10-13
 
 This tutorial aims to teach some good data organisation practices, then how to load and summarise the data in R. But first, we need to be able to install a few helpful packages which make working with data in R easier and more efficient.
 
@@ -229,6 +229,8 @@ p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
 ```
 
 ![](2_Data_files/figure-markdown_github/unnamed-chunk-15-1.png)
+
+*Continue to tutorial 3,* [Estimation using Mixed Models](https://github.com/ABindoff/R_tutorials/blob/master/3_Estimation.md)
 
 ### Resources
 

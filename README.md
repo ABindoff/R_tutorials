@@ -4,4 +4,4 @@ Staff and students at the Wicking Dementia Research and Education Centre are inv
   
 [1. R and R Studio intro](https://github.com/ABindoff/R_tutorials/blob/master/1_R_Studio.md)  
 [2. Working with data](https://github.com/ABindoff/R_tutorials/blob/master/2_Data.md)  
-
+[3. Estimation using mixed models](https://github.com/ABindoff/R_tutorials/blob/master/3_Estimation.md)
