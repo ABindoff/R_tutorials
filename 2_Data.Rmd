@@ -175,8 +175,8 @@ p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
 
 
 ```
-
   
+*Continue to tutorial 3,* [Estimation using Mixed Models](https://github.com/ABindoff/R_tutorials/blob/master/3_Estimation.md) 
   
 ### Resources
 

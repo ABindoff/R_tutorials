@@ -1,12 +1,12 @@
-*3. Estimation*
+*3. Estimation using mixed models*
 ================
 Bindoff, A.
 
-2017-10-12
+2017-10-13
 
-In the previous tutorial we looked at some ways to summarise data in tables and figures using the `dplyr` and `ggplot2` packages in R. If you are already working with data of your own you may have already plotted your data to get a sense of what is happening. But how do we know what is the real effect of a treatment or observed variable, and what is just chance occurrence? For it is certainly true that random noise will produce patterns, and conversely, that sytematic patterns can be lost in noise. This is why it is useful to [both plot and analyse data](https://www.autodeskresearch.com/publications/samestats). In this tutorial we will explore ways to analyse data from **laboratory experiments**.
+In the previous tutorial we looked at some ways to summarise data in tables and figures using the `dplyr` and `ggplot2` packages in R. If you are already working with data of your own you may have already plotted your data and started to make some interpretation. But how do we know what is the real effect of a treatment or observed variable, and what is just chance occurrence? For it is certainly true that random noise will produce patterns, and conversely, that sytematic patterns can be lost in noise. This is why it is useful to [both plot and analyse data](https://www.autodeskresearch.com/publications/samestats). In this tutorial we will explore some ways to analyse data from **laboratory experiments**.
 
-For this tutorial we will assume that you have some background in experimental design (for nothing will save a very poorly designed experiment). We will not assume that things don't go wrong, that there won't be any measurement error, or that there are not factors outside of your control. A recurring theme throughout this tutorial will be minimisation of Type I and Type II errors. This is not merely the pursuit of scientific or statistical purity, but so that you avoid wasting years of your life trying to replicate something that was never there, or missing the next big discovery.
+For this tutorial we will assume that you have some background in experimental design (for nothing will save a very poorly designed experiment). We will not assume that things don't go wrong, that there won't be any measurement error, or that there are not factors outside of your control. A recurring theme throughout this tutorial will be minimisation of Type I and Type II errors. This is not merely the pursuit of scientific or statistical purity, but so that you avoid wasting years of your life trying to replicate something that was never there, or potentially missing the next big discovery!
 
 ![type I & II errors](type_i_ii_errors.jpg)
 
@@ -99,17 +99,13 @@ summary(lm(protein ~ treatment + day, df))
     ## Multiple R-squared:  0.7172, Adjusted R-squared:  0.6945 
     ## F-statistic:  31.7 on 4 and 50 DF,  p-value: 3.674e-13
 
-It is usual to see these large effects of day (or batch, or new bottle of vehicle, or animal...) confounding the effect of treatment, but there's not much we can infer from this experiment because we don't know what it *was about `day`* that made the difference. Hence, we call `day` a "random effect" to distinguish it from a "fixed effect". `Day` is not something we can manipulate or assign some fixed value by which an adjustment can be made to predict the effect of `day` *in future experiments* or *in the population*.
+It is usual to see these large effects of day (or batch, or new bottle of vehicle, or animal...) confounding the effect of treatment, but there's not much we can infer from this experiment because we don't know what it *was about `day`* that made the difference. Hence, we call `day` a "random effect" to distinguish it from a "fixed effect". `Day` is not something we can manipulate or assign some fixed value by which an adjustment can be made to predict the effect of any particular `day` *in future experiments* or *in the population*.
 
 One solution is to center the response variable by deducting the mean `protein` for each day from each observation on that day.
 
 ``` r
-df <- group_by(df, day) %>% mutate(protein_c = scale(protein, scale =F))
-```
-
-    ## Warning: package 'bindrcpp' was built under R version 3.3.3
-
-``` r
+df <- group_by(df, day) %>% mutate(protein_c = scale(protein, scale = F)) 
+    # mutate produces a new column using a function which you specify
 ggplot(df, aes(x = treatment, y = protein_c, colour = day)) +
   geom_boxplot()
 ```
@@ -140,7 +136,7 @@ summary(m1 <- lm(protein_c ~ treatment, df))
     ## Multiple R-squared:  0.3322, Adjusted R-squared:  0.3065 
     ## F-statistic: 12.94 on 2 and 52 DF,  p-value: 2.756e-05
 
-This approach has the benefit of removing the mean effect of day. But what if (as in this case, but to a greater extreme) treatments aren't balanced over days? What if there is more than one random effect? What if the random effect has a different effect on the control group than treatment groups?
+This approach has the benefit of removing the mean effect of day. But what if (as in this case, but to a greater extreme) treatments aren't balanced over days? What if there is more than one random effect? What if the random effect has a different effect on the control group than on treatment groups?
 
 ### Mixed Models
 
@@ -180,9 +176,29 @@ summary(m <- lmer(protein ~ treatment + (1|day), df))
     ## treatment10 -0.146       
     ## treatment12 -0.174  0.220
 
+We can even assess the accuracy of these random effects against the simulated values:
+
+``` r
+ranef(m)
+```
+
+    ## $day
+    ##   (Intercept)
+    ## 1  -1.7834305
+    ## 2   2.1419826
+    ## 3  -0.3585521
+
+``` r
+df$day.effect <- day.effect
+k <- group_by(df, day) %>% summarise(day.effect = mean(day.effect))
+scale(k$day.effect, scale = F)[,1]
+```
+
+    ## [1] -2.1653336  2.4489045 -0.2835709
+
 Can we now confidently state that there is a treatment effect? (Hint: not without more information)
 
-The issue here is that each observation has been treated as a replicate. In truth, we don't know if the observed effect will generalise to the population. As it turns out, this experiment took cells from just two embryos (labelled `a` and `b` below).
+The issue here is that each observation has been treated as a replicate. We don't know if the sample is representative of the population, and thus, whether the observed effect will generalise to the population. As it turns out, this experiment took cells from just two embryos (labelled `a` and `b` below).
 
 ``` r
 df$embryo <- c(rep("a", 20), rep("b", 20), rep("a", 15))
@@ -192,9 +208,9 @@ ggplot(df, aes(x = treatment, y = protein, colour = embryo)) +
   facet_wrap(~ day)
 ```
 
-![](3_Estimation_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](3_Estimation_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
-In a mixed model we can estimate the random effect of `day` and `embryo` in the same model.
+In a mixed model we can estimate the random effect of `day` and `embryo` in the same model. This allows us to relax the *assumption of independence of residuals*.
 
 ``` r
 summary(m2 <- lmer(protein ~ treatment + (1|day) + (1|embryo), df))
@@ -235,11 +251,11 @@ Can we confidently state that there is an effect of treatment? Yes, but with the
 
 ### Clustering
 
-Another way to think about random effects are as grouping or clustering variables. Above we obtained a very reasonable result by simply deducting daily mean `protein` from observations for the corresponding day. In effect, this is a crude but reasonable way to account for the effect of clustering on day. Similarly, if dealing with multiple observations from each subject, in order to satisfy the *assumption of independence* it is reasonable to reduce the observations per subject to a mean, or deduct pre-test scores from post-test scores in a repeated measures experiment. Doing this comes at the expense of information about how much the observations within each subject vary.
+Another way to think about random effects are as grouping or *clustering* variables. Above we obtained a very reasonable result by simply deducting daily mean `protein` from observations for the corresponding day. In effect, this is a crude but reasonable way to account for the effect of clustering on day. Similarly, if dealing with multiple observations from each subject, in order to satisfy the *assumption of independence* it is reasonable to reduce the observations per subject to a mean, or deduct pre-test scores from post-test scores in some repeated measures experiments. Doing this comes at the expense of information about how much the observations within each subject vary.
 
 The assumption of independence can be relaxed by including random effects terms in the model to specify where (and how) the data are clustered. For example, in a repeated measures experiment, a random intercept can be fitted for each subject. This is the mean of all scores for each subject. A more complicated random effects structure might also fit a random slope for each subject, accounting for the average change in scores for each subject. [This paper](https://www.ncbi.nlm.nih.gov/pubmed/24403724) provides an excellent overview of random effects structures.
 
-In the next example we simulate data from a simple within-subjects behavioural experiment where mice a trained to perform a task and then tested again after a treatment. Four observations are taken from each animal at each time point.
+In the next example we simulate data from a simple within-subjects behavioural experiment where mice have been trained to perform a task and are then tested again after a treatment. Four observations are taken from each animal at each time point.
 
 ``` r
 set.seed(123)
@@ -257,14 +273,14 @@ ggplot(df0, aes(x = time, y = accuracy, group = id, colour = id)) +
   geom_point(aes(x = time, y = accuracy, colour = id), data = df)
 ```
 
-![](3_Estimation_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](3_Estimation_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 The different coloured lines show the mean change between pre-treatment (t = 0) and post-treatment (t = 1) scores. It is clear that animals who have a low score at t = 0 tend to have a low score at t = 1. There is a trend towards higher scores at t = 1, but the effect is stronger for some than for others.
 
 For our first analysis we will ignore the random effect (and assumption of independence)
 
 ``` r
-summary(lm(accuracy ~ time, df))
+summary(m1 <- lm(accuracy ~ time, df))
 ```
 
     ## 
@@ -284,10 +300,10 @@ summary(lm(accuracy ~ time, df))
     ## Multiple R-squared:  0.008241,   Adjusted R-squared:  -0.004473 
     ## F-statistic: 0.6482 on 1 and 78 DF,  p-value: 0.4232
 
-We expect the *β* coefficient of time to be 1, and the intercept to be 0. We know that even though there is a lot of noise (the `rnorm` arguments add random noise to the intercept and slope), there is a real effect, but this is not reflected in the p-value. Next we will account for the observed trend that animals with higher accuracy scores at t = 0 tend to have higher accuracy scores at t = 1.
+We know that even though there is a lot of noise (the `rnorm` arguments add random noise to the intercept and slope), there is a real effect (because we simulated it), but this is not reflected in the p-value. Next we will account for the observed trend that animals with higher accuracy scores at t = 0 tend to have higher accuracy scores at t = 1.
 
 ``` r
-summary(m1 <- lmer(accuracy ~ time + (1|id), df))
+summary(m2 <- lmer(accuracy ~ time + (1|id), df))
 ```
 
     ## Linear mixed model fit by REML t-tests use Satterthwaite approximations
@@ -320,10 +336,10 @@ summary(m1 <- lmer(accuracy ~ time + (1|id), df))
 
 We have 10 animals, so while this analysis is valid, an estimated denominator degrees of freedom of 69 seems high. Recall that the p-value is calculated using the F statistic with degrees of freedom. If the df seems too high, this suggests the possibility of an inflated Type I error rate.
 
-Next we estimate a random slope.
+Next we estimate a random slope (plus random intercept) in our random effects structure.
 
 ``` r
-summary(m2 <- lmer(accuracy ~ time + (time|id), df))
+summary(m3 <- lmer(accuracy ~ time + (time|id), df))
 ```
 
     ## Linear mixed model fit by REML t-tests use Satterthwaite approximations
@@ -355,10 +371,10 @@ summary(m2 <- lmer(accuracy ~ time + (time|id), df))
     ##       (Intr)
     ## time1 0.377
 
-The p-value is now estimated using df = 9 - which seems far more appropriate given that only 10 animals were studied. The estimated variance for the random slope is non-zero (which we know is true anyway because we simulated these data), which suggests that this term should be included. A likelihood ratio test and AIC statistics show that both models are equivalent.
+The p-value is now estimated using df = 9 which seems far more appropriate given that only 10 animals were studied. The estimated variance for the random slope is non-zero (which we know is true anyway because we simulated these data), which suggests that this term should be included. A likelihood ratio test and AIC statistics show that both models are equivalent, leaving the choice of models up to the analyst.
 
 ``` r
-anova(m1, m2)
+anova(m2, m3)
 ```
 
     ## refitting model(s) with ML (instead of REML)
@@ -371,6 +387,51 @@ anova(m1, m2)
     ## object  4 170.31 179.83 -81.153   162.31                        
     ## ..1     6 170.13 184.43 -79.066   158.13 4.173      2     0.1241
 
+The benefit of the random slope term is that it reduces the influence of more extreme data (e.g single animals who respond more strongly than average) by adjusting for the influence of the extreme data.
+
+While there is a strong incentive to find small p-values [(and this may be a selection pressure in the scientific community)](http://rsos.royalsocietypublishing.org/content/3/9/160384), inflated Type I error rates lead to false conclusions. What do we mean by "inflated Type I error rates"? If we accept p = .05 as a cut-off, we're really saying that we're prepared to accept a Type I error .05 (or 5%) of the time - which is a reasonable proposition. However, if our p-values don't approximate the probability of observing the result (or a more extreme result) due to chance, then we may be accepting a much higher Type I error rate. By letting extreme values influence the result, we are implying that we believe our sample to be representative of the population, and accepting the obtained p-value on this basis. If it's not true that our sample is representative of the population then the p-value will not represent the probability of obtaining the observed result (or more extreme) by chance.
+
+If we accept df = 78 in the first model (*m*<sub>1</sub>) in the above example we're implying that we believe every observation to be representative of the population - ignoring that observations were from just 10 animals. If we accept (estimated) df = 69 in the second model (*m*<sub>2</sub>), we're implying that every observation is representative of the population, after we adjust for one of the individual tendencies of the 10 animals we observed. If we accept (estimated) df = 9 in the third model (*m*<sub>3</sub>), we're implying that we observed repeated observations from 10 animals, and believe that we have made an adjustment that reflects all of the known sources of variance appropriately.
+
+In order to throw a little fat on the fire, let's compute the same regression using the mean values for each animal at each time point (`df0` is the data frame we used to produce the mean slopes in the plot above).
+
+``` r
+summary(m4 <- lmer(accuracy ~ time + (1|id), df0))
+```
+
+    ## Linear mixed model fit by REML t-tests use Satterthwaite approximations
+    ##   to degrees of freedom [lmerMod]
+    ## Formula: accuracy ~ time + (1 | id)
+    ##    Data: df0
+    ## 
+    ## REML criterion at convergence: 54.3
+    ## 
+    ## Scaled residuals: 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1.13068 -0.69316 -0.04124  0.63856  1.13611 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance Std.Dev.
+    ##  id       (Intercept) 3.8510   1.9624  
+    ##  Residual             0.1092   0.3305  
+    ## Number of obs: 20, groups:  id, 10
+    ## 
+    ## Fixed effects:
+    ##             Estimate Std. Error     df t value Pr(>|t|)  
+    ## (Intercept)   0.1631     0.6293 9.2520   0.259   0.8012  
+    ## time1         0.3521     0.1478 9.0000   2.382   0.0411 *
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##       (Intr)
+    ## time1 -0.117
+
+Compare the *β* coefficients ("Estimate" column in model summaries) and p-values for time1 for each model, *m*<sub>1</sub>, *m*<sub>2</sub>, *m*<sub>3</sub>, *m*<sub>4</sub>. The *β* coefficients should be identical, and the p-values for *m*<sub>3</sub> and *m*<sub>4</sub> should also be the same. This is *not* to imply that summarising the mean of observations at each time point for each animal and regressing on those will always be equivalent to a random intercept + random slope model. This example serves two purposes, 1. to show that a random intercept + random slope model correctly estimates the mean response for each animal (under the assumption of normality of residuals), and 2. to get you thinking about (and perhaps discussing) when this might not be the case, and where mixed models might offer a unique advantage.
+
+*Continue to tutorial 4,* [When the data aren't normal](https://github.com/ABindoff/R_tutorials/blob/master/4_counts_and_proportions.md)
+
 ### Resources
 
 [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
+[Random effects structure for confirmatory hypothesis testing: Keep it maximal](https://www.ncbi.nlm.nih.gov/pubmed/24403724)
