@@ -2,17 +2,19 @@
 ================
 Bindoff, A.
 
-2017-10-13
+2018-04-26
 
 In the previous tutorial we looked at some ways to summarise data in tables and figures using the `dplyr` and `ggplot2` packages in R. If you are already working with data of your own you may have already plotted your data and started to make some interpretation. But how do we know what is the real effect of a treatment or observed variable, and what is just chance occurrence? For it is certainly true that random noise will produce patterns, and conversely, that sytematic patterns can be lost in noise. This is why it is useful to [both plot and analyse data](https://www.autodeskresearch.com/publications/samestats). In this tutorial we will explore some ways to analyse data from **laboratory experiments**.
 
-For this tutorial we will assume that you have some background in experimental design (for nothing will save a very poorly designed experiment). We will not assume that things don't go wrong, that there won't be any measurement error, or that there are not factors outside of your control. A recurring theme throughout this tutorial will be minimisation of Type I and Type II errors. This is not merely the pursuit of scientific or statistical purity, but so that you avoid wasting years of your life trying to replicate something that was never there, or potentially missing the next big discovery!
+For this tutorial we will assume that you have some background in experimental design (for nothing will save a poorly designed experiment). We will not assume that things don't go wrong, that there won't be any measurement error, or that there are not factors outside of your control. A recurring theme throughout this tutorial will be minimisation of Type I and Type II errors. This is not merely the pursuit of scientific or statistical purity, but so that you avoid wasting years of your life trying to replicate something that was never there, or potentially missing the next big discovery!
 
 ![type I & II errors](type_i_ii_errors.jpg)
 
 ### Models
 
-In some disciplines, data analysis and statistics is taught from a hypothesis testing perspective, where you learn which test to apply when in order to obtain a p-value. It is important to realise that this is not a test of your experiment, or even the data from your experiment - but rather a test of how well the data from your experiment fits *under the model you specify*. A good experiment analysed with a poorly fitted model is more likely to produce Type II errors, and an experiment analysed with a model that makes unreasonable assumptions about the generalisability of the experiment is more likely to produce Type I errors or models that only work for the sample (but generalise poorly to the population).
+In some disciplines, data analysis and statistics is taught from a hypothesis testing perspective, where you learn which test to apply when in order to obtain a p-value. It is important to realise that this is a test of how *surprising* the data would be if there were no effect. If your statistical model is poorly fitted, only the largest effects will be "surprising" because you aren't accounting for the variance you might reasonably expect to see due to known and measurable factors.
+
+A good experiment analysed with a poorly fitted model is more likely to produce Type II errors, and an experiment analysed with a model that makes unreasonable assumptions about the generalisability of the experiment is more likely to produce Type I errors or models that only work for the sample (but generalise poorly to the population).
 
 We will begin with a problematic example with features that will be familiar to many lab scientists. In this experiment, there are clearly systematic sources of variance that are outside of the experimenter's control. We will simulate results from a mouse embryo experiment assessing the effect of two levels of a drug (plus a control) on cell cultures. Experimental treatments were applied over two days, and the level of protein expressed recorded after treatment.
 
@@ -165,9 +167,9 @@ summary(m <- lmer(protein ~ treatment + (1|day), df))
     ## 
     ## Fixed effects:
     ##             Estimate Std. Error      df t value Pr(>|t|)    
-    ## (Intercept)   7.3070     1.2328  2.1400   5.927   0.0232 *  
-    ## treatment10   1.4469     0.7198 50.5000   2.010   0.0498 *  
-    ## treatment12   3.9450     0.6617 50.9700   5.962 2.36e-07 ***
+    ## (Intercept)   7.3070     1.2328  2.1403   5.927   0.0232 *  
+    ## treatment10   1.4469     0.7198 50.5028   2.010   0.0498 *  
+    ## treatment12   3.9450     0.6617 50.9665   5.962 2.36e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -236,9 +238,9 @@ summary(m2 <- lmer(protein ~ treatment + (1|day) + (1|embryo), df))
     ## 
     ## Fixed effects:
     ##             Estimate Std. Error      df t value Pr(>|t|)    
-    ## (Intercept)   7.7506     1.7092  1.0200   4.535   0.1337    
-    ## treatment10   1.5111     0.7190 50.6800   2.102   0.0406 *  
-    ## treatment12   3.9965     0.6563 51.1800   6.089 1.47e-07 ***
+    ## (Intercept)   7.7506     1.7092  1.0247   4.535   0.1337    
+    ## treatment10   1.5111     0.7190 50.6770   2.102   0.0406 *  
+    ## treatment12   3.9965     0.6563 51.1832   6.089 1.47e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -325,8 +327,8 @@ summary(m2 <- lmer(accuracy ~ time + (1|id), df))
     ## 
     ## Fixed effects:
     ##             Estimate Std. Error      df t value Pr(>|t|)   
-    ## (Intercept)   0.1631     0.6274  9.1400   0.260  0.80072   
-    ## time1         0.3521     0.1118 69.0000   3.151  0.00241 **
+    ## (Intercept)   0.1631     0.6274  9.1444   0.260  0.80072   
+    ## time1         0.3521     0.1118 68.9999   3.151  0.00241 **
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -334,7 +336,7 @@ summary(m2 <- lmer(accuracy ~ time + (1|id), df))
     ##       (Intr)
     ## time1 -0.089
 
-We have 10 animals, so while this analysis is valid, an estimated denominator degrees of freedom of 69 seems high. Recall that the p-value is calculated using the F statistic with degrees of freedom. If the df seems too high, this suggests the possibility of an inflated Type I error rate.
+We have 10 animals, so while this analysis is valid, an estimated denominator degrees of freedom of 69 seems high. Recall that the p-value is calculated using some statistic (*e.g* F in ANOVA) with **degrees of freedom**. If the df seems too high, this suggests the possibility of an inflated Type I error rate.
 
 Next we estimate a random slope (plus random intercept) in our random effects structure.
 
@@ -391,8 +393,6 @@ The benefit of the random slope term is that it reduces the influence of more ex
 
 While there is a strong incentive to find small p-values [(and this may be a selection pressure in the scientific community)](http://rsos.royalsocietypublishing.org/content/3/9/160384), inflated Type I error rates lead to false conclusions. What do we mean by "inflated Type I error rates"? If we accept p = .05 as a cut-off, we're really saying that we're prepared to accept a Type I error .05 (or 5%) of the time - which is a reasonable proposition. However, if our p-values don't approximate the probability of observing the result (or a more extreme result) due to chance, then we may be accepting a much higher Type I error rate. By letting extreme values influence the result, we are implying that we believe our sample to be representative of the population, and accepting the obtained p-value on this basis. If it's not true that our sample is representative of the population then the p-value will not represent the probability of obtaining the observed result (or more extreme) by chance.
 
-If we accept df = 78 in the first model (*m*<sub>1</sub>) in the above example we're implying that we believe every observation to be representative of the population - ignoring that observations were from just 10 animals. If we accept (estimated) df = 69 in the second model (*m*<sub>2</sub>), we're implying that every observation is representative of the population, after we adjust for one of the individual tendencies of the 10 animals we observed. If we accept (estimated) df = 9 in the third model (*m*<sub>3</sub>), we're implying that we observed repeated observations from 10 animals, and believe that we have made an adjustment that reflects all of the known sources of variance appropriately.
-
 In order to throw a little fat on the fire, let's compute the same regression using the mean values for each animal at each time point (`df0` is the data frame we used to produce the mean slopes in the plot above).
 
 ``` r
@@ -418,7 +418,7 @@ summary(m4 <- lmer(accuracy ~ time + (1|id), df0))
     ## 
     ## Fixed effects:
     ##             Estimate Std. Error     df t value Pr(>|t|)  
-    ## (Intercept)   0.1631     0.6293 9.2520   0.259   0.8012  
+    ## (Intercept)   0.1631     0.6293 9.2517   0.259   0.8012  
     ## time1         0.3521     0.1478 9.0000   2.382   0.0411 *
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
