@@ -2,7 +2,7 @@
 ================
 Bindoff, A.
 
-2017-10-13
+2018-06-08
 
 This tutorial aims to teach some good data organisation practices, then how to load and summarise the data in R. But first, we need to be able to install a few helpful packages which make working with data in R easier and more efficient.
 
@@ -22,8 +22,6 @@ The function `library(packageName)` will load a package into the environment so 
 library(dplyr)
 ```
 
-    ## Warning: package 'dplyr' was built under R version 3.3.3
-
     ## 
     ## Attaching package: 'dplyr'
 
@@ -38,8 +36,6 @@ library(dplyr)
 ``` r
 library(ggplot2)
 ```
-
-    ## Warning: package 'ggplot2' was built under R version 3.3.3
 
 #### 2.3 Good practice in data organisation
 
@@ -178,22 +174,17 @@ This is a good exploratory plot because it shows the *density* of m conditioned 
 ``` r
 df0 <- group_by(df, strain, age) %>%
   summarise(mean.m = mean(m), se.m = sd(m)/sqrt(sum(!is.na(m))))
-```
-
-    ## Warning: package 'bindrcpp' was built under R version 3.3.3
-
-``` r
 df0
 ```
 
     ## # A tibble: 4 x 4
     ## # Groups:   strain [?]
-    ##   strain    age     mean.m      se.m
-    ##   <fctr> <fctr>      <dbl>     <dbl>
-    ## 1     wt    5mo -0.9881132 0.1635233
-    ## 2     wt   20mo -0.3119452 0.1126215
-    ## 3     tg    5mo  0.4371749 0.1371538
-    ## 4     tg   20mo  0.8764464 0.1727166
+    ##   strain age   mean.m  se.m
+    ##   <fct>  <fct>  <dbl> <dbl>
+    ## 1 wt     5mo   -0.988 0.164
+    ## 2 wt     20mo  -0.312 0.113
+    ## 3 tg     5mo    0.437 0.137
+    ## 4 tg     20mo   0.876 0.173
 
 The first function, `group_by()` takes a data frame, then groups rows by `strain` then by `t`. `%>%` is called the "pipe operator" and it carries data from the previous operation through to the next operation. `summarise()` applies a function or functions to data. So in this case, we've given it grouped data to summarise.
 
@@ -235,3 +226,4 @@ p + scale_colour_manual(values = c("dodgerblue4", "firebrick"),
 ### Resources
 
 [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
+[Efficient R Programming (e-book)](https://csgillespie.github.io/efficientR/index.html)
