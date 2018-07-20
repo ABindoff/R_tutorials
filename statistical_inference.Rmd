@@ -1,0 +1,146 @@
+---
+title: "Inference"
+author: "Bindoff, A."
+date: "20 July 2018"
+output: ioslides_presentation
+autosize: true
+---
+<style type="text/css">
+body, td {
+   font-size: 10px;
+}
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 10px
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+```
+
+## What is inference?
+
+- descriptive statistics describes the sample (mean, standard deviation)
+- inferential statistics infers properties of population
+  - dependent on data
+  - valid inference dependent on *how the data were collected*
+  
+## Why do we need p-values?
+
+Consider the data from a single experiment on extra-sensory perception (Bem, 2011). Participants are shown a pair of curtains on a monitor and asked to guess which curtain the image is hidden behind. After the participant has made their selection, the computer decides at random whether there was an image behind the chosen curtain.  
+
+Participants were able to guess which curtain would conceal the image 53.1% of the time.  
+
+**What proportion of times would we expect participants to correctly guess which curtain concealed the image?**
+
+## Why do we need p-values?
+
+- p-values tell us how *surprising* the data would be if there was no underlying effect
+- e.g imagine experiment where both groups receive the same placebo
+
+$t(99) = 2.51, p = .01, d = 0.25$  
+
+## Why do we need p-values?
+
+If participants did not have ESP, what would the distribution of correct responses look like?  
+
+Let's simulate data for 10000 participants who do **not** have ESP. There were 36 trials per participant in the Bem experiment.  
+
+```{r, echo = TRUE}
+# setting the seed for the random number generator
+# assures reproducibility
+set.seed(42)  
+
+# 36 trials with p = 0.5 chance of guessing correctly
+y <- replicate(10000, rbinom(36, 1, prob = 0.5))  
+```
+
+## Proportion of correct responses per participant
+
+```{r}
+hist(colMeans(y), breaks = 24, main = "")
+
+```
+
+
+## Do p-values completely solve the problem?
+
+The following code simulates the data we would expect to see if participants guessed correctly 50% of the time. There were 36 trials and 100 participants in the original Bem experiment, so we will simulate $36 \times 100 = 3600$ data points, calculate a p-value (using a t-test) for each of 2000 simulated experiments.  
+
+```{r, echo = TRUE}
+# initialise a vector to store results of our t-tests
+rep <- c()  
+for(i in 1:2000){
+  y <- replicate(100, rbinom(36, 1, prob = 0.5))
+    # one sample t-test of difference from expected value if chance
+  test <- t.test(colMeans(y)-0.5) 
+    # store the p-values in a vector called `rep`
+  rep <- c(rep, test$p.value)                
+}
+```
+
+## Distribution of p-values
+
+```{r}
+hist(rep, breaks = 20, main = "")
+```
+
+## Type 1 error rate
+
+We use $\alpha < .05$ by convention (or is it by convenience?)  
+
+>>"It is convenient to take this point as a limit in judging whether a deviation is to be considered significant or not. Deviations exceeding twice the standard deviation are thus formally regarded as significant" (Fisher, 1925)  
+
+Compare with the histogram on the previous slide, is this what you would expect?  
+
+(Hold this thought, we will look at the distribution of p-values when there **is** an effect later)  
+
+## Linear models
+
+Let's build a data generation model!  
+
+\[
+  y = \beta_0 + \beta_1x_1 + \epsilon\\
+  \epsilon \sim N(0, \sigma^2)
+\]
+
+## Linear models
+
+```{r, echo = TRUE}
+set.seed(10)
+B0 <- 3
+B1 <- 1.5
+epsilon <- rnorm(12, mean = 0, sd = 1)
+x1 <- c(rep(0, 6), rep(1, 6))
+
+y <- B0 + B1*x1 + epsilon
+
+```
+
+## Linear models
+
+```{r}
+data <- data.frame(y = round(y, 1), x1 = factor(x1))
+
+ggplot(data = data, aes(y = y, x = x1)) +
+  geom_boxplot()
+
+```
+
+## Practical example - permutation test
+
+Using the R scripts provided, generate some new data and write the numbers on the squares provided. On the coloured squares write the $y_i$ values corresponding to $x_{1_i} = 0$, and on the white paper write the $y_i$ values corresponding to $x_{1_i} = 1$.  
+
+Now shuffle the squares and divide into two groups of 6.  
+
+Calculate the difference between group means and write it down.  
+
+Re-shuffle, divide into new groups and calculate the group mean differences another 20 times.  
+
+## Practical example - permutation test
+
+
