@@ -83,7 +83,7 @@ for(i in 1:2000){
 }
 ```
 
-## Distribution of p-values
+## Distribution of p-values (no effect)
 
 ```{r}
 hist(rep, breaks = 20, main = "")
@@ -114,20 +114,34 @@ Let's build a data generation model!
 set.seed(10)
 B0 <- 3
 B1 <- 1.5
-epsilon <- rnorm(12, mean = 0, sd = 1)
+epsilon <- function(){rnorm(12, mean = 0, sd = 1)}
 x1 <- c(rep(0, 6), rep(1, 6))
 
-y <- B0 + B1*x1 + epsilon
+y <- function(){B0 + B1*x1 + epsilon()}
 
 ```
 
 ## Linear models
 
 ```{r}
-data <- data.frame(y = round(y, 1), x1 = factor(x1))
+data <- data.frame(y = round(y(), 1), x1 = factor(x1))
 
 ggplot(data = data, aes(y = y, x = x1)) +
   geom_boxplot()
+
+```
+
+## Linear models  
+
+```{r}
+data
+```
+
+## Linear models
+
+```{r}
+t.test(y ~ x1, data)
+cat("\n\nDifference in group means = ", mean(data$y[7:12] - data$y[1:6]))
 
 ```
 
@@ -141,6 +155,45 @@ Calculate the difference between group means and write it down.
 
 Re-shuffle, divide into new groups and calculate the group mean differences another 20 times.  
 
+```{r}
+shuffle <- function(y){
+  n <- length(y)
+  ydot <- sample(y, n, replace = FALSE)
+  y1 <- ydot[1:floor(n/2)]
+  y2 <- ydot[(floor(n/2)+1):n]
+  abs(mean(y1)-mean(y2))
+}
+set.seed(1)
+permute <- replicate(100, shuffle(data$y), simplify = "array")
+```
+
 ## Practical example - permutation test
 
+Out of 100 permutations, how many resulted in a difference at least as large as observed in our experiment?  
 
+```{r}
+hist(permute, breaks = 20, xlab = "random group diff", main = "Null distribution")
+
+```
+
+## Distribution of p-values (large effect)
+
+```{r, echo = TRUE}
+p.val.perm <- function(){
+  k <- y()         # run experiment again (random draws from generating model)
+  obs.diff <- abs(mean(k[7:12]-k[1:6]))  # calculate observed difference of means
+  perm <- replicate(100, shuffle(k))     # permute ("shuffle") 100 times and calculate observed differences
+  mean(perm >= obs.diff)       # what proportion of permutations >= observed difference from experiment
+}
+
+p.perm <- replicate(500, p.val.perm())   # repeat experiment 500 times, storing p-value each time
+mean(p.perm < .05)                       # true positive rate by permutation test
+```
+
+## Distribution of p-values (large effect)
+
+
+```{r}
+
+hist(p.perm, breaks = 20)
+```
