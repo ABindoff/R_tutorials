@@ -1,5 +1,5 @@
 ---
-title: "Statistical Inference 1 - understanding p-values"
+title: "Statistical Inference - Understanding p-values"
 author: "Bindoff, A."
 date: "20 July 2018"
 output: ioslides_presentation
@@ -27,7 +27,7 @@ library(ggplot2)
 - descriptive statistics describes the sample (mean, standard deviation)
 - inferential statistics infers properties of population
   - dependent on data
-  - valid inference dependent on *how the data were collected*
+  - valid inference dependent on *how the data were collected and analysed*
   
 ## Why do we need p-values?
 
@@ -215,18 +215,18 @@ hist(p.perm, breaks = 20)
 ## What have we learned?
 
 - the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
-- $p(y|H_0) \neq p(H_0|y)$
+- $p(y|H_0) \neq p(H_0|y)$ "fallacy of the transposed conditional"  
 
 ## What have we learned?
 
 - the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
-- $p(y|H_0) \neq p(H_0|y)$
+- $p(y|H_0) \neq p(H_0|y)$ "fallacy of the transposed conditional"  
 - the p-value is heavily dependent on test assumptions - **you must check that these assumptions are satisfied**
 
 ## What have we learned?
 
 - the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
-- $p(y|H_0) \neq p(H_0|y)$
+- $p(y|H_0) \neq p(H_0|y)$ "fallacy of the transposed conditional"  
 - the p-value is heavily dependent on test assumptions - **you must check that these assumptions are satisfied**
   - Google
   - consult a friendly statistician
@@ -239,3 +239,14 @@ hist(p.perm, breaks = 20)
 # Fig courtesy of Rousselet, G. A., Pernet, C. R., Wilcox, R. R. (2017)
 # "Beyond differences in means: robust graphical methods to compare two groups in neuroscience"
 ```
+
+## References
+
+Bem, D. J. (2011). Feeling the future: experimental evidence for anomalous retroactive influences on cognition and affect. Journal of personality and social psychology, 100(3), 407.  
+
+https://slate.com/health-and-science/2017/06/daryl-bem-proved-esp-is-real-showed-science-is-broken.html  
+
+https://rationalwiki.org/wiki/Confusion_of_the_inverse ("fallacy of the transposed conditional")  
+
+Rousselet, G. A., Pernet, C. R., & Wilcox, R. R. (2017). Beyond differences in means: robust graphical methods to compare two groups in neuroscience. European Journal of Neuroscience, 46(2), 1738-1748.  
+
