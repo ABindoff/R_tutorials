@@ -147,13 +147,13 @@ cat("\n\nDifference in group means = ", mean(data$y[7:12] - data$y[1:6]))
 
 ## Practical example - permutation test
 
-Using the R scripts provided, generate some new data and write the numbers on the squares provided. On the coloured squares write the $y_i$ values corresponding to $x_{1_i} = 0$, and on the white paper write the $y_i$ values corresponding to $x_{1_i} = 1$.  
+Using the R scripts provided, generate data and write the numbers on the squares provided. On the coloured squares write the $y_i$ values corresponding to $x_{1_i} = 0$, and on the white paper write the $y_i$ values corresponding to $x_{1_i} = 1$.  
 
 Now shuffle the squares and divide into two groups of 6.  
 
-Calculate the difference between group means and write it down.  
+Calculate the difference between group means and record this number.  
 
-Re-shuffle, divide into new groups and calculate the group mean differences another 20 times.  
+Re-shuffle, divide into new groups and calculate the group mean differences 20 times.  
 
 ```{r}
 shuffle <- function(y){
