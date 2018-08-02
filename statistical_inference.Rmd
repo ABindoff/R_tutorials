@@ -1,5 +1,5 @@
 ---
-title: "Inference"
+title: "Statistical Inference 1 - understanding p-values"
 author: "Bindoff, A."
 date: "20 July 2018"
 output: ioslides_presentation
@@ -91,7 +91,7 @@ hist(rep, breaks = 20, main = "")
 
 ## Type 1 error rate
 
-We use $\alpha < .05$ by convention (or is it by convenience?)  
+We use $\alpha = .05$ by convention (or is it by convenience?)  
 
 >>"It is convenient to take this point as a limit in judging whether a deviation is to be considered significant or not. Deviations exceeding twice the standard deviation are thus formally regarded as significant" (Fisher, 1925)  
 
@@ -196,4 +196,46 @@ mean(p.perm < .05)                       # true positive rate by permutation tes
 ```{r}
 
 hist(p.perm, breaks = 20)
+```
+
+## What have we learned?
+
+- $\alpha$ (typically $\alpha = .05$) is the proportion of times we're prepared to reject the null when it is true, the so-called Type 1 error rate
+- if there is no difference between groups p-values are uniformly distributed over many experiments (p = .001 is no more unusual than p = .321)
+- if there is a difference between groups, p-values will not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
+
+
+## What have we learned?
+
+- $\alpha$ (typically $\alpha = .05$) is the proportion of times we're prepared to reject the null when it is true, the so-called Type 1 error rate
+- if there is no difference between groups p-values are uniformly distributed over many experiments (p = .001 is no more unusual than p = .321)
+- if there is a difference between groups, p-values will not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
+- the p-value tells us how surprising the data would be if there were no effect
+
+## What have we learned?
+
+- the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
+- $p(y|H_0) \neq p(H_0|y)$
+
+## What have we learned?
+
+- the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
+- $p(y|H_0) \neq p(H_0|y)$
+- the p-value is heavily dependent on test assumptions - **you must check that these assumptions are satisfied**
+
+## What have we learned?
+
+- the p-value can't tell us if there is no effect (it can tell us if the **data** would not be surprising under the null) 
+- $p(y|H_0) \neq p(H_0|y)$
+- the p-value is heavily dependent on test assumptions - **you must check that these assumptions are satisfied**
+  - Google
+  - consult a friendly statistician
+  
+## What have we learned?
+
+![](figure2.jpg)
+
+```{r, echo = TRUE}
+# Fig courtesy of Rousselet, G. A., Pernet, C. R., Wilcox, R. R. (2017)
+# "Beyond differences in means: robust graphical methods to compare two groups in neuroscience"
 ```
