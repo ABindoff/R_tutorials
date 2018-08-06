@@ -2,20 +2,10 @@
 title: "Statistical Inference - Understanding p-values"
 author: "Bindoff, A."
 date: "20 July 2018"
-output: ioslides_presentation
+output: powerpoint_presentation
 autosize: true
 ---
-<style type="text/css">
-body, td {
-   font-size: 10px;
-}
-code.r{
-  font-size: 10px;
-}
-pre {
-  font-size: 10px
-}
-</style>
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -44,49 +34,60 @@ Participants were able to guess which curtain would conceal the image 53.1% of t
 
 $t(99) = 2.51, p = .01, d = 0.25$  
 
+```{r}
+# setting the seed for the random number generator
+# assures reproducibility
+set.seed(42)  
+```
+
 ## Why do we need p-values?
 
 If participants did not have ESP, what would the distribution of correct responses look like?  
 
-Let's simulate data for 10000 participants who do **not** have ESP. There were 36 trials per participant in the Bem experiment.  
+First, let's simulate data for 100 participants who do **not** have ESP. There were 36 trials per participant in the Bem experiment.  
 
 ```{r, echo = TRUE}
-# setting the seed for the random number generator
-# assures reproducibility
-set.seed(42)  
-
-# 36 trials with p = 0.5 chance of guessing correctly
-y <- replicate(10000, rbinom(36, 1, prob = 0.5))  
+# 36 trials with p = 0.5 chance of guessing correctly, n= 100 participants
+bem <- function(n = 100){
+  y <- replicate(n, rbinom(36, 1, prob = 0.5))
+  colMeans(y)
+}
+y <- bem(n = 100)
 ```
 
 ## Proportion of correct responses per participant
 
 ```{r}
-hist(colMeans(y), breaks = 24, main = "")
+hist(y, main = "", breaks = seq(0.05, 1, by = 0.1))
 
 ```
 
+## Mean correct responses per Bem replication
+
+Replicate Bem 1000 times, plot distribution of results
+
+```{r}
+y <- replicate(1000, bem(n = 100))
+replication <- colMeans(y)
+
+par(mfrow = c(1, 2))
+plot(ecdf(replication))
+hist(replication)
+```
 
 ## Do p-values completely solve the problem?
 
-The following code simulates the data we would expect to see if participants guessed correctly 50% of the time. There were 36 trials and 100 participants in the original Bem experiment, so we will simulate $36 \times 100 = 3600$ data points, calculate a p-value (using a t-test) for each of 2000 simulated experiments.  
+What is the distribution of p-values from our 1000 Bem replications?  
 
-```{r, echo = TRUE}
-# initialise a vector to store results of our t-tests
-rep <- c()  
-for(i in 1:2000){
-  y <- replicate(100, rbinom(36, 1, prob = 0.5))
-    # one sample t-test of difference from expected value if chance
-  test <- t.test(colMeans(y)-0.5) 
-    # store the p-values in a vector called `rep`
-  rep <- c(rep, test$p.value)                
-}
+```{r, echo = FALSE}
+pvals <- apply(y, 2, function(z) t.test(z-0.5)$p.val)
+
 ```
 
 ## Distribution of p-values (no effect)
 
 ```{r}
-hist(rep, breaks = 20, main = "")
+hist(pvals, breaks = 20, main = "")
 ```
 
 ## Type 1 error rate
@@ -103,10 +104,8 @@ Compare with the histogram on the previous slide, is this what you would expect?
 
 Let's build a data generation model!  
 
-\[
-  y = \beta_0 + \beta_1x_1 + \epsilon\\
-  \epsilon \sim N(0, \sigma^2)
-\]
+$y = \beta_0 + \beta_1x_1 + \epsilon$  
+$\epsilon \sim N(0, \sigma^2)$
 
 ## Linear models
 
@@ -235,10 +234,8 @@ hist(p.perm, breaks = 20)
 
 ![](figure2.jpg)
 
-```{r, echo = TRUE}
-# Fig courtesy of Rousselet, G. A., Pernet, C. R., Wilcox, R. R. (2017)
-# "Beyond differences in means: robust graphical methods to compare two groups in neuroscience"
-```
+Fig courtesy of Rousselet, G. A., Pernet, C. R., Wilcox, R. R. (2017)
+"Beyond differences in means: robust graphical methods to compare two groups in neuroscience"
 
 ## References
 
