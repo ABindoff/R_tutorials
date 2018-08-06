@@ -21,17 +21,18 @@ library(ggplot2)
   
 ## Why do we need p-values?
 
-Consider the data from a single experiment on extra-sensory perception (Bem, 2011). Participants are shown a pair of curtains on a monitor and asked to guess which curtain the image is hidden behind. After the participant has made their selection, the computer decides at random whether there was an image behind the chosen curtain.  
+Consider the data from a single experiment on extra-sensory perception (Bem, 2011). Participants are shown a pair of curtains on a monitor and asked to guess which curtain the image is hidden behind. After the participant has made their selection, the computer decides at random whether there was an image behind the chosen curtain. Erotic images or non-erotic images were displayed.  
 
-Participants were able to guess which curtain would conceal the image 53.1% of the time.  
+Participants were able to guess which curtain would conceal an erotic image 53.1% of the time.  
 
-**What proportion of times would we expect participants to correctly guess which curtain concealed the image?**
+**What proportion of times would we expect participants to correctly guess which curtain concealed the erotic image?**
 
 ## Why do we need p-values?
 
 - p-values tell us how *surprising* the data would be if there was no underlying effect
 - e.g imagine experiment where both groups receive the same placebo
-
+  
+  
 $t(99) = 2.51, p = .01, d = 0.25$  
 
 ```{r}
@@ -44,12 +45,12 @@ set.seed(42)
 
 If participants did not have ESP, what would the distribution of correct responses look like?  
 
-First, let's simulate data for 100 participants who do **not** have ESP. There were 36 trials per participant in the Bem experiment.  
+First, let's simulate data for 100 participants who do **not** have ESP. There were 36 trials per participant in the Bem experiment. We'll ignore whether images were erotic or not (for now).  
 
 ```{r, echo = TRUE}
 # 36 trials with p = 0.5 chance of guessing correctly, n= 100 participants
-bem <- function(n = 100){
-  y <- replicate(n, rbinom(36, 1, prob = 0.5))
+bem <- function(n = 100, trials = 36){
+  y <- replicate(n, rbinom(trials, 1, prob = 0.5))
   colMeans(y)
 }
 y <- bem(n = 100)
@@ -64,15 +65,35 @@ hist(y, main = "", breaks = seq(0.05, 1, by = 0.1))
 
 ## Mean correct responses per Bem replication
 
-Replicate Bem 1000 times, plot distribution of results
+Replicate Bem 1000 times (ignoring image attributes), plot distribution of results
 
 ```{r}
-y <- replicate(1000, bem(n = 100))
+y <- replicate(1000, bem(n = 100, trials = 36))
 replication <- colMeans(y)
 
-par(mfrow = c(1, 2))
-plot(ecdf(replication))
 hist(replication)
+abline(v = 0.53, lty = 2)
+```
+
+## Mean correct responses per Bem replication
+
+Bem reported results for erotic images and non-erotic images separately, claiming that the signficant result for erotic images and the non-significant result for non-erotic images had been hypothesised *a-priori*. Bem argued that the results were confirmatory of the hypothesis supporting precognition for erotic images.  
+
+There were 40 trials that included 12 erotic images and 60 trials that included 18 erotic images. We will simulate results for 1000 experiments with 40 + 60 participants each.  
+
+```{r}
+bem2 <- function(){
+  y <- bem(n = 40, trials = 12)
+  y <- c(y, bem(n = 60, trials = 18))
+  return(y)
+}
+
+y <- replicate(1000, bem2())
+replication <- colMeans(y)
+
+hist(replication)
+abline(v = 0.53, lty = 2)
+cat("\n", sum(replication >.53), " out of 1000 replications with mean correct responses > .53")
 ```
 
 ## Do p-values completely solve the problem?
@@ -82,13 +103,9 @@ What is the distribution of p-values from our 1000 Bem replications?
 ```{r, echo = FALSE}
 pvals <- apply(y, 2, function(z) t.test(z-0.5)$p.val)
 
+hist(pvals, breaks = 20, main = "1000 replications (no effect)")
 ```
 
-## Distribution of p-values (no effect)
-
-```{r}
-hist(pvals, breaks = 20, main = "")
-```
 
 ## Type 1 error rate
 
@@ -108,6 +125,7 @@ $y = \beta_0 + \beta_1x_1 + \epsilon$
 $\epsilon \sim N(0, \sigma^2)$
 
 ## Linear models
+
 
 ```{r, echo = TRUE}
 set.seed(10)
