@@ -157,7 +157,7 @@ data
 ## Linear models
 
 ```{r}
-t.test(y ~ x1, data)
+t.test(y ~ x1, data, var.equal = TRUE)
 cat("\n\nDifference in group means = ", mean(data$y[7:12] - data$y[1:6]))
 
 ```
@@ -219,14 +219,14 @@ hist(p.perm, breaks = 20)
 
 - $\alpha$ (typically $\alpha = .05$) is the proportion of times we're prepared to reject the null when it is true, the so-called Type 1 error rate
 - if there is no difference between groups p-values are uniformly distributed over many experiments (p = .001 is no more unusual than p = .321)
-- if there is a difference between groups, p-values will not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
+- if there is a difference between groups, p-values should not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
 
 
 ## What have we learned?
 
 - $\alpha$ (typically $\alpha = .05$) is the proportion of times we're prepared to reject the null when it is true, the so-called Type 1 error rate
 - if there is no difference between groups p-values are uniformly distributed over many experiments (p = .001 is no more unusual than p = .321)
-- if there is a difference between groups, p-values will not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
+- if there is a difference between groups, p-values should not be uniformly distributed over many experiments (this is why p-values are useful under the "frequentist" assumptions)
 - the p-value tells us how surprising the data would be if there were no effect
 
 ## What have we learned?
