@@ -130,7 +130,7 @@ $\epsilon \sim N(0, \sigma^2)$
 ```{r, echo = TRUE}
 set.seed(10)
 B0 <- 3
-B1 <- 1.5
+B1 <- 1.25
 epsilon <- function(){rnorm(12, mean = 0, sd = 1)}
 x1 <- c(rep(0, 6), rep(1, 6))
 
@@ -164,9 +164,9 @@ cat("\n\nDifference in group means = ", mean(data$y[7:12] - data$y[1:6]))
 
 ## Practical example - permutation test
 
-Using the R scripts provided, generate data and write the numbers on the squares provided. On the coloured squares write the $y_i$ values corresponding to $x_{1_i} = 0$, and on the white paper write the $y_i$ values corresponding to $x_{1_i} = 1$.  
+Write each number on the paper squares provided. Alternatively, you can generate new data using the provided script if you like to live dangerously.  
 
-Now shuffle the squares and divide into two groups of 6.  
+Now shuffle the squares face down and divide into two groups of 6.  
 
 Calculate the difference between group means and record this number.  
 
@@ -190,10 +190,10 @@ Out of 100 permutations, how many resulted in a difference at least as large as 
 
 ```{r}
 hist(permute, breaks = 20, xlab = "random group diff", main = "Null distribution")
-
+abline(v = 1.233, lty = "dotted")
 ```
 
-## Distribution of p-values (large effect)
+## Distribution of p-values (moderate effect)
 
 ```{r, echo = TRUE}
 p.val.perm <- function(){
@@ -207,7 +207,7 @@ p.perm <- replicate(500, p.val.perm())   # repeat experiment 500 times, storing 
 mean(p.perm < .05)                       # true positive rate by permutation test
 ```
 
-## Distribution of p-values (large effect)
+## Distribution of p-values (moderate effect)
 
 
 ```{r}
