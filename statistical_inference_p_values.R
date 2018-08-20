@@ -13,44 +13,55 @@
 set.seed(42)  
 
 # 36 trials with p = 0.5 chance of guessing correctly
-y <- replicate(10000, rbinom(36, 1, prob = 0.5))  
+bem <- function(n = 100, trials = 36){
+  y <- replicate(n, rbinom(trials, 1, prob = 0.5))
+  colMeans(y)
+}
+y <- bem(n = 100)
 
+####
 
-#### slide 6
-
-hist(colMeans(y), breaks = 24, main = "")
+hist(y, main = "", breaks = seq(0.05, 1, by = 0.1))
 
 
 #### slide 7
 
 # initialise a vector to store results of our t-tests
-rep <- c()  
-for(i in 1:2000){
-  y <- replicate(100, rbinom(36, 1, prob = 0.5))
-  # one sample t-test of difference from expected value if chance
-  test <- t.test(colMeans(y)-0.5) 
-  # store the p-values in a vector called `rep`
-  rep <- c(rep, test$p.value)                
+y <- replicate(1000, bem(n = 100, trials = 36))
+replication <- colMeans(y)
+
+hist(replication)
+abline(v = 0.53, lty = 2)
+
+####
+
+bem2 <- function(){
+  y <- bem(n = 40, trials = 12)
+  y <- c(y, bem(n = 60, trials = 18))
+  return(y)
 }
 
+y <- replicate(1000, bem2())
+replication <- colMeans(y)
 
+hist(replication)
+abline(v = 0.53, lty = 2)
+cat("\n", sum(replication >.53),
+    " out of 1000 replications with mean correct responses > .53")
 
-#### slide 8
+pvals <- apply(y, 2, function(z) t.test(z-0.5)$p.val)
 
-hist(rep, breaks = 20, main = "")
+hist(pvals, breaks = 20, main = "1000 replications (no effect)")
 
-
-
-#### slide 11
+####
 
 set.seed(10)
 B0 <- 3
-B1 <- 1.5
+B1 <- 1.25
 epsilon <- function(){rnorm(12, mean = 0, sd = 1)}
 x1 <- c(rep(0, 6), rep(1, 6))
 
 y <- function(){B0 + B1*x1 + epsilon()}
-
 data <- data.frame(y = round(y(), 1), x1 = factor(x1))
 
 #### slide 13
@@ -60,13 +71,14 @@ data
 
 #### slide 14
 
-t.test(y ~ x1, data)
+t.test(y ~ x1, data, var.equal = TRUE)
 cat("\n\nDifference in group means = ", mean(data$y[7:12] - data$y[1:6]))
 
 
 
 
-#### slide 16
+
+####
 
 shuffle <- function(y){
   n <- length(y)
@@ -79,10 +91,10 @@ set.seed(1)
 permute <- replicate(100, shuffle(data$y), simplify = "array")
 
 hist(permute, breaks = 20, xlab = "random group diff", main = "Null distribution")
+abline(v = 1.233, lty = "dotted")
 
 
-
-#### slide 17
+####
 
 p.val.perm <- function(){
   k <- y()         # run experiment again (random draws from generating model)
@@ -92,8 +104,7 @@ p.val.perm <- function(){
 }
 
 p.perm <- replicate(500, p.val.perm())   # repeat experiment 500 times, storing p-value each time
-mean(p.perm < .05)      
-
+mean(p.perm < .05) 
 
 #### slide 18
 
