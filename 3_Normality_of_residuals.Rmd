@@ -1,0 +1,202 @@
+---
+title: "_3. Normality of Residuals_"
+author: "Bindoff, A."
+date: "15 October 2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(ggplot2)
+library(ggbeeswarm)
+library(ggpubr)
+library(dplyr)
+library(knitr)
+```
+
+```{r}
+d <- expand.grid(treat = c(rep(0, 20), rep(1, 10)),
+                 geno = c(0,1))
+
+d <- mutate(d, score = 5 + 1.2*treat + geno + 8*treat*geno + rnorm(nrow(d), 0, 2),
+            treat = factor(treat, labels = c("Placebo", "Drug")),
+            geno = factor(geno, labels = c("WT", "TG")))
+```
+
+Many statistical models make assumptions about the distribution of the data, and p-values calculated from these models make the same assumptions. Where model assumptions are violated, error rates will be inflated. This is a poor use of resources, and leads to faulty inference about the physical or biological processes you are trying to understand by experimentation.  
+
+An assumption of many statistical models is that the *residuals* are normally distributed. The residuals are the difference between the model and the data. In mathematical notation,  
+
+\[Y = \beta_0 + \beta_1X_1 +\dots+\beta_kX_k + \epsilon\]
+\[\epsilon \sim N(0, \sigma^2)\]
+
+Note that there is no requirement that $Y \sim N(0, \sigma^2)$, in other words, the *data* do not need to be normally distributed.  
+
+Let's learn how to assess the normality of residuals.  
+
+### Experimental data
+
+We simulate data from a simple 2x2 between subjects experimental design. Transgenic mice and wild-type controls were treated with either a Drug or a Placebo then given a behavioural task which was scored. The drug was very expensive so groups are unbalanced, 20 mice (10 x WT, 10 x TG) received the drug and 40 mice (20 x WT, 20 x TG) received the placebo. It was hypothesised that the drug would only have an effect on the TG mice. The results are plotted using a beeswarm plot.  
+
+```{r}
+d <- expand.grid(treat = c(rep(0, 20), rep(1, 10)),
+                 geno = c(0,1))
+set.seed(1)
+d <- mutate(d, score = 5 + 1.2*treat + geno + 8*treat*geno + rnorm(nrow(d), 0, 1.8),
+            treat = factor(treat, labels = c("Placebo", "Drug")),
+            geno = factor(geno, labels = c("WT", "TG")))
+
+ggplot(d, aes(x = treat, y = score, colour = geno)) +
+  geom_quasirandom(size = 2) +
+  scale_colour_manual(values = c("black", "red")) +
+  theme_bw()
+
+```
+
+The beeswarm plot is a good choice for a small to medium N experiment like this because it shows all of the data and the sampling distribution at the two levels of treatment.  
+
+If we make the frequently used (but incorrect) assumption that the *data* need to be normally distributed, we can plot the data using a frequency histogram (a density plot would also be appropriate). This shows a bi-modal distribution.  
+
+```{r}
+ggplot(d, aes(x = score)) +
+  geom_histogram() +
+  theme_bw()
+
+```
+
+There are two types of people, those who like to dichotomise, and if you are in this group you might like to use Shapiro-Wilk's method to get a p-value so that you can make a black and white decision about whether these data are normally distributed or not -  
+
+```{r echo = TRUE}
+shapiro.test(d$score)
+```
+
+This p-value is definitely less than .05, so the data are not normally distributed according to `shapiro.test`. My personal favourite approach is to use a Q-Q plot, and the `ggpubr` library gives a very interpretable example. The scores are plotted on the y-axis and the theoretical quantiles are on the x-axis. If the data are normally distributed with $\mu = 0$ and SD = 1, the data-points should roughly follow the diagonal line, staying within the confidence bands. This approach satisfies both those who like to dichotomise and a multitude of other personality types.  
+
+```{r, echo = TRUE}
+ggqqplot(d$score)
+```
+
+So by now you should be satisfied that the *data* are not normally distributed ($Y \not\sim N(0, \sigma^2)$), but what about the *residuals*? Are $\epsilon \sim N(0, \sigma^2)$?  We fit a main effects model and another model with the hypothesised main effects and interaction and use `ggqqplot` to assess the normality of residuals.   
+
+```{r, echo = TRUE}
+model1 <- lm(score ~ treat + geno, d)
+ggqqplot(resid(model1))
+```
+
+```{r, echo = TRUE}
+model2 <- lm(score ~ treat + geno + treat:geno, d)
+ggqqplot(resid(model2))
+```
+
+We are satisfied that the residuals are approximately normally distributed, and thus can interpret our p-values with some confidence.  
+
+```{r}
+anova(model2)
+```
+
+### Central Limit Theorem
+
+Central Limit Theorem (CLT) is a very important result in statistics. It tells us that for a sufficiently large sample, the residuals will tend to become normally distributed *regardless of the distribution of the generating process*. For *independent* observations, "sufficiently large" is around N = 30 according to some statistical texts. Given that it's relatively simple to check the normality of residuals, I prefer not to mindlessly rely on CLT and the following example will illustrate why.  
+
+
+### Definitely not normal
+
+Data from a different experiment in the same study are now investigated. The $Y$ in this experiment are counts, and we can see immediately that the counts are not normally distributed (in fact, they follow a Poisson distribution).  
+
+
+```{r}
+d <- expand.grid(treat = c(rep(0, 20), rep(1, 10)),
+                 geno = c(0,1))
+set.seed(8)
+d <- mutate(d, score = c(rpois(20, 0.3), # WT, placebo
+                         rpois(10, 0.3), # WT, drug
+                         rpois(20, 0.9), # TG, placebo
+                         rpois(10, 4)),  # TG, drug
+            treat = factor(treat, labels = c("Placebo", "Drug")),
+            geno = factor(geno, labels = c("WT", "TG")))
+
+ggplot(d, aes(x = treat, y = score, colour = geno)) +
+  geom_quasirandom(size = 2) +
+  scale_colour_manual(values = c("black", "red")) +
+  theme_bw()
+
+```
+```{r}
+ggqqplot(d$score)
+```
+
+We have simulated this data, so we know exactly what their distribution is. For WT mice,  
+\[Y_{WT} \sim Poisson(\lambda = 0.3)\]  
+
+And for TG mice,  
+
+\[Y_{TG_{placebo}} \sim Poisson(\lambda = .9)\]
+\[Y_{TG_{drug}} \sim Poisson(\lambda = 4)\]
+
+Despite this, because we have a large enough N, the *residuals* should be approximately normally distributed. Fit the main effects + interaction model and check with a Q-Q plot,  
+
+
+```{r, echo = TRUE}
+model2 <- lm(score ~ treat + geno + treat:geno, d)
+ggqqplot(resid(model2))
+```
+
+Uh-oh! 
+
+Had our residuals been approximately normally distributed we could have interpreted these p-values with more confidence.  
+
+```{r}
+summary(model2)
+```
+
+Let's plot the estimates and see what we think
+
+```{r}
+nd <- expand.grid(treat = levels(d$treat), geno = levels(d$geno))
+k <- predict(model2, nd, se.fit = TRUE)
+nd$score = k$fit
+nd$lwr95 = k$fit - 1.96*k$se.fit
+nd$upr95 = k$fit + 1.96*k$se.fit
+
+ggplot(d, aes(x = treat, y = score, colour = geno)) +
+  geom_quasirandom(size = 2, alpha = 0.5) +
+  scale_colour_manual(values = c("black", "red")) +
+  geom_errorbar(data = nd, aes(ymin = lwr95, ymax = upr95), position = position_dodge(width = 0.2), width = 0.15) +
+    geom_point(data = nd, position = position_dodge(width = 0.2), size = 3) +
+  theme_bw()
+
+```
+
+Do these estimates look reasonable?  How do you feel about the WT confidence intervals?  
+
+Let's see if we can improve our confidence intervals using a Generalized Linear Model. Instead of assuming the residuals are normally distributed, the GLM assumes they follow some other distribution which can be modelled using a *link function*. The data are counts so we will use a Poisson link function. A Poisson distribution has just one parameter, $\lambda$, which is a constant rate at which events will occur. The Poisson distribution tells us the expected number of events in a fixed interval of time (or space), given $\lambda$. We wish to estimate $\lambda$ for each condition.  
+
+
+```{r, echo = TRUE}
+model3 <- glm(score ~ treat + geno + treat:geno, d, family = "poisson")
+
+```
+
+```{r}
+ndp <- expand.grid(treat = levels(d$treat), geno = levels(d$geno))
+k <- predict(model3, nd, se.fit = TRUE, type = "link")
+ndp$score = exp(k$fit)
+ndp$lwr95 = exp(k$fit - 1.96*k$se.fit)
+ndp$upr95 = exp(k$fit + 1.96*k$se.fit)
+
+
+ggplot(d, aes(x = treat, y = score, colour = geno)) +
+  geom_quasirandom(size = 2, alpha = 0.5) +
+  scale_colour_manual(values = c("black", "red")) +
+  geom_errorbar(data = ndp, aes(ymin = lwr95, ymax = upr95), position = position_dodge(width = 0.2), width = 0.15) +
+  geom_point(data = ndp, position = position_dodge(width = 0.2), size = 3) +
+  theme_bw()
+
+```
+
+
+Both models arrive at the same point estimates, but the 95% CIs for the GLM are clearly more sensible.  
+
