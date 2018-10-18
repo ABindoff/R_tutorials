@@ -18,7 +18,10 @@ and the data. In mathematical notation,
 \[\epsilon \sim N(0, \sigma^2)\]
 
 Note that there is no requirement that \(Y \sim N(0, \sigma^2)\), in
-other words, the *data* do not need to be normally distributed.
+other words, the *data* do not need to be normally
+distributed.
+
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 Let’s learn how to assess the normality of residuals.
 
@@ -33,7 +36,7 @@ It was hypothesised that the drug would only have an effect on the TG
 mice. The results are plotted using a beeswarm
 plot.
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 The beeswarm plot is a good choice for a small to medium N experiment
 like this because it shows all of the data and the sampling distribution
@@ -45,7 +48,7 @@ frequency histogram (a density plot would also be appropriate). This
 shows a bi-modal
 distribution.
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 There are two types of people, those who like to dichotomise, and if you
 are in this group you might like to use Shapiro-Wilk’s method to get a
@@ -77,7 +80,7 @@ types.
 ggqqplot(d$score)
 ```
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 So by now you should be satisfied that the *data* are not normally
 distributed (\(Y \not\sim N(0, \sigma^2)\)), but what about the
@@ -90,14 +93,14 @@ model1 <- lm(score ~ treat + geno, d)
 ggqqplot(resid(model1))
 ```
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 model2 <- lm(score ~ treat + geno + treat:geno, d)
 ggqqplot(resid(model2))
 ```
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 We are satisfied that the residuals are approximately normally
 distributed, and thus can interpret our p-values with some confidence.
@@ -131,8 +134,8 @@ The \(Y\) in this experiment are counts, and we can see immediately that
 the counts are not normally distributed (in fact, they follow a Poisson
 distribution).
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 ![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 We have simulated this data, so we know exactly what their distribution
 is. For WT mice,  
@@ -152,7 +155,7 @@ model2 <- lm(score ~ treat + geno + treat:geno, d)
 ggqqplot(resid(model2))
 ```
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 Uh-oh\!
 
@@ -183,7 +186,7 @@ interpreted these p-values with more confidence.
 Let’s plot the estimates and see what we
 think
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Do these estimates look reasonable? How do you feel about the WT
 confidence intervals?
@@ -203,7 +206,7 @@ condition.
 model3 <- glm(score ~ treat + geno + treat:geno, d, family = "poisson")
 ```
 
-![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](3_Normality_of_residuals_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 Both models arrive at the same point estimates, but the 95% CIs for the
 GLM are clearly more sensible.

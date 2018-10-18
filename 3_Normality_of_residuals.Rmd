@@ -2,7 +2,7 @@
 title: "_3. Normality of Residuals_"
 author: "Bindoff, A."
 date: "15 October 2018"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -34,6 +34,22 @@ An assumption of many statistical models is that the *residuals* are normally di
 \[\epsilon \sim N(0, \sigma^2)\]
 
 Note that there is no requirement that $Y \sim N(0, \sigma^2)$, in other words, the *data* do not need to be normally distributed.  
+
+```{r}
+set.seed(42)
+x <- 1:100
+y <- 10 + 1.5*x + rnorm(100, 0, 10)
+par(mfrow = c(1,2))
+hist(y)
+plot(y ~ x, main = "y = 10 + 1.5*x + e", cex = 0.65)
+abline(10,1.5, col = "red")
+abline(20, 1.5, col = "blue", lty = 2)
+abline(0, 1.5, col = "blue", lty = 2)
+abline(-10, 1.5, col = "grey50", lty = 2)
+abline(30, 1.5, col = "grey50", lty = 2)
+
+
+```
 
 Let's learn how to assess the normality of residuals.  
 
